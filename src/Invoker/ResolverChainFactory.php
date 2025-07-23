@@ -15,9 +15,7 @@ use DI\Invoker\DefinitionParameterResolver;
 use Invoker\ParameterResolver\ParameterResolver;
 use Invoker\ParameterResolver\DefaultValueResolver;
 use Invoker\ParameterResolver\NumericArrayResolver;
-use Entropy\Invoker\ParameterResolver\DoctrineEntityResolver;
 use Invoker\ParameterResolver\Container\TypeHintContainerResolver;
-use Entropy\Invoker\ParameterResolver\DoctrineParamConverterAnnotations;
 use Psr\Container\NotFoundExceptionInterface;
 
 class ResolverChainFactory
@@ -33,13 +31,13 @@ class ResolverChainFactory
         $proxyDir = $this->getProxyDirectory($container);
         $definitionResolver = new ResolverDispatcher($container, new ProxyFactory($proxyDir));
 
-        // Résolveurs par défaut
+        // Default resolvers
         $defaultResolvers = $this->getDefaultResolvers($container, $definitionResolver);
 
-        // Résolveurs Doctrine
-        //$doctrineResolvers = $this->getDoctrineResolvers($container);
+        // Developer resolvers
+        $otherResolvers = $this->getDeveloperResolvers($container);
 
-        return new ControllerParamsResolver(/*array_merge($doctrineResolvers,*/ $defaultResolvers/*)*/);
+        return new ControllerParamsResolver(array_merge($otherResolvers, $defaultResolvers));
     }
 
     /**
@@ -50,23 +48,20 @@ class ResolverChainFactory
      */
     private function getProxyDirectory(ContainerInterface $container): ?string
     {
-        if ($container->get('env') !== 'prod') {
+        if (!$container->has('env')) {
             return null;
         }
 
-        if (!$container->has('proxy_dir')) {
-            return null;
+        $proxyDir = null;
+
+        if ($container->get('env') === 'prod') {
+            $projectDir = FileUtils::getProjectDir();
+            $projectDir = realpath($projectDir) ?: $projectDir;
+            $proxyDir = $container->has('proxy_dir') ? $container->get('proxy_dir') : null;
+            $proxyDir = $proxyDir ? $projectDir . $proxyDir : null;
         }
 
-        $proxyDir = $container->get('proxy_dir');
-
-        if ($proxyDir !== null) {
-            if (!$container->has('env')) {
-                return null;
-            }
-        }
-
-        return $proxyDir ?? FileUtils::getProjectDir() . $proxyDir;
+        return $proxyDir;
     }
 
     /**
@@ -86,25 +81,17 @@ class ResolverChainFactory
     }
 
     /**
-     * @param ContainerInterface $container
-     * @return array
-     * @throws NotFoundException
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
-    /*
-    private function getDoctrineResolvers(ContainerInterface $container): array
+    private function getDeveloperResolvers(ContainerInterface $container): array
     {
-        if (!$container->has(ManagerRegistry::class)) {
+        if (!$container->has('params.resolvers')) {
             return [];
         }
 
-        try {
-            $managerRegistry = $container->get(ManagerRegistry::class);
-            return [
-                new DoctrineParamConverterAnnotations($managerRegistry, $container->get(AnnotationsLoader::class)),
-                new DoctrineEntityResolver($managerRegistry),
-            ];
-        } catch (NotFoundExceptionInterface | ContainerExceptionInterface $e) {
-            throw new NotFoundException($e->getMessage(), $e->getCode(), $e);
-        }
-    }*/
+        $resolvers = $container->get('params.resolvers');
+
+        return is_array($resolvers) ? $resolvers : [$resolvers];
+    }
 }
