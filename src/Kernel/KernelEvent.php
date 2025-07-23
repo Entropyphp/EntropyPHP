@@ -1,5 +1,7 @@
 <?php
 
+// Inspired by Symfony HttpKernel (c) Fabien Potencier, MIT License
+
 declare(strict_types=1);
 
 namespace Entropy\Kernel;
