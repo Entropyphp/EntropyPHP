@@ -17,7 +17,6 @@ use Psr\Container\ContainerInterface;
 use Invoker\ParameterResolver\ResolverChain;
 use Invoker\ParameterResolver\DefaultValueResolver;
 use Invoker\ParameterResolver\NumericArrayResolver;
-use Invoker\ParameterResolver\AssociativeArrayResolver;
 use Invoker\ParameterResolver\Container\TypeHintContainerResolver;
 use Psr\Container\NotFoundExceptionInterface;
 
