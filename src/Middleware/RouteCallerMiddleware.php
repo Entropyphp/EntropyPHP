@@ -4,10 +4,8 @@ namespace Entropy\Middleware;
 
 use Exception;
 use GuzzleHttp\Psr7\Response;
-use Invoker\CallableResolver;
 use Invoker\Exception\NotCallableException;
 use Invoker\Invoker;
-use Invoker\InvokerInterface;
 use Invoker\ParameterResolver\ResolverChain;
 use Entropy\Invoker\ParameterResolver\RequestParamResolver;
 use Psr\Container\ContainerExceptionInterface;
@@ -15,11 +13,9 @@ use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
-use Invoker\Reflection\CallableReflection;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Invoker\ParameterResolver\ParameterResolver;
-use ReflectionException;
 
 /**
  * All magic happens here
