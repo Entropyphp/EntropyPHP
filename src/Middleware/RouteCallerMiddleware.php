@@ -6,6 +6,8 @@ use Exception;
 use GuzzleHttp\Psr7\Response;
 use Invoker\CallableResolver;
 use Invoker\Exception\NotCallableException;
+use Invoker\Invoker;
+use Invoker\InvokerInterface;
 use Invoker\ParameterResolver\ResolverChain;
 use Entropy\Invoker\ParameterResolver\RequestParamResolver;
 use Psr\Container\ContainerExceptionInterface;
@@ -39,13 +41,13 @@ class RouteCallerMiddleware implements MiddlewareInterface
 
     /**
      * Psr15 middleware process method
+     *
      * @param ServerRequestInterface $request
      * @param RequestHandlerInterface $handler
      * @return ResponseInterface
      * @throws NotCallableException
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
-     * @throws ReflectionException
      * @throws Exception
      */
     public function process(
@@ -56,18 +58,14 @@ class RouteCallerMiddleware implements MiddlewareInterface
         $callback = $request->getAttribute('_controller');
         $params = $request->getAttribute('_params');
 
-        /** @var CallableResolver $callableResolver */
-        $callableResolver = $this->container->get(CallableResolver::class);
-        $callback = $callableResolver->resolve($callback);
-
         $paramsResolver = $this->container->get(ParameterResolver::class);
-        $callableReflection = CallableReflection::create($callback);
         assert($paramsResolver instanceof ResolverChain);
+
         // Add a request param resolver if needed (hint ServerRequestInterface)
         $paramsResolver->appendResolver(new RequestParamResolver($request));
-        $params = $paramsResolver->getParameters($callableReflection, $params, []);
+        $invoker = new Invoker($paramsResolver, $this->container);
 
-        $response = $callback(...$params);
+        $response = $invoker->call($callback, $params);
 
         if (is_string($response)) {
             return new Response(200, [], $response);
