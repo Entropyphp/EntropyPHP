@@ -11,7 +11,7 @@ use ReflectionNamedType;
 
 class RequestParamResolver implements ParameterResolver
 {
-    public function __construct(private ServerRequestInterface $request)
+    public function __construct(private readonly ServerRequestInterface $request)
     {
     }
 

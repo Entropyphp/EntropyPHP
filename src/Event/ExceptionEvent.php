@@ -29,7 +29,7 @@ class ExceptionEvent extends RequestEvent
     }
 
     /**
-     * Set the value of exception
+     * Set the value of the exception
      *
      * @param Throwable $exception
      * @return  self
