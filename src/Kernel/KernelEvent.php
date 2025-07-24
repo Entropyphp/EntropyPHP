@@ -140,11 +140,7 @@ class KernelEvent implements KernelInterface
 
 
     /**
-     * Publishes the finish request event, then pop the request from the stack.
-     *
-     * Note that the order of the operations is important here, otherwise
-     * operations such as {@link RequestStack::getParentRequest()} can lead to
-     * weird results.
+     * Publishes the finish request event
      */
     private function finishRequest(ServerRequestInterface $request): void
     {
