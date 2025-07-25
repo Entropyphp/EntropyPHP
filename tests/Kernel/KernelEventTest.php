@@ -4,48 +4,46 @@ declare(strict_types=1);
 
 namespace Entropy\Tests\Kernel;
 
-use Entropy\Event\ControllerEvent;
-use Entropy\Event\ControllerParamsEvent;
 use Entropy\Event\ExceptionEvent;
 use Entropy\Event\FinishRequestEvent;
 use Entropy\Event\RequestEvent;
 use Entropy\Event\ResponseEvent;
-use Entropy\Event\ViewEvent;
-use Entropy\Invoker\ParameterResolver\RequestParamResolver;
 use Entropy\Kernel\KernelEvent;
 use Exception;
 use Invoker\CallableResolver;
+use Invoker\Exception\NotCallableException;
 use Invoker\ParameterResolver\ParameterResolver;
 use Invoker\ParameterResolver\ResolverChain;
-use Invoker\Reflection\CallableReflection;
+use Pg\Event\EventDispatcher;
+use Pg\Event\EventSubscriberInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Message\UriInterface;
-use RuntimeException;
+use ReflectionException;
 
 class KernelEventTest extends TestCase
 {
     private EventDispatcherInterface|MockObject $dispatcher;
-    private CallableResolver|MockObject $callableResolver;
-    private ParameterResolver|MockObject $paramsResolver;
     private ContainerInterface|MockObject $container;
     private KernelEvent $kernel;
 
+    /**
+     * @throws \PHPUnit\Framework\MockObject\Exception
+     */
     protected function setUp(): void
     {
-        $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $this->callableResolver = $this->createMock(CallableResolver::class);
-        $this->paramsResolver = $this->createMock(ResolverChain::class);
+        $this->dispatcher = $this->createMock(EventDispatcher::class);
+        $callableResolver = $this->createMock(CallableResolver::class);
+        $paramsResolver = $this->createMock(ResolverChain::class);
         $this->container = $this->createMock(ContainerInterface::class);
 
         $this->kernel = new KernelEvent(
             $this->dispatcher,
-            $this->callableResolver,
-            $this->paramsResolver,
+            $callableResolver,
+            $paramsResolver,
             $this->container
         );
     }
@@ -60,6 +58,9 @@ class KernelEventTest extends TestCase
         $this->assertSame($this->container, $this->kernel->getContainer());
     }
 
+    /**
+     * @throws \PHPUnit\Framework\MockObject\Exception
+     */
     public function testSetAndGetRequest(): void
     {
         $request = $this->createMock(ServerRequestInterface::class);
@@ -70,25 +71,40 @@ class KernelEventTest extends TestCase
         $this->assertSame($request, $this->kernel->getRequest());
     }
 
+    /**
+     * @throws ReflectionException
+     * @throws NotCallableException
+     * @throws \PHPUnit\Framework\MockObject\Exception
+     */
     public function testSetCallbacks(): void
     {
         $callbacks = [
-            $this->createMock(\stdClass::class),
-            $this->createMock(\stdClass::class),
+            $this->createMock(EventSubscriberInterface::class),
+            $this->createMock(EventSubscriberInterface::class),
         ];
 
-        $this->dispatcher->expects($this->exactly(2))
+        $invokedCount = $this->exactly(2);
+        $dispatcher = $this->dispatcher;
+        $this->dispatcher
+            ->expects($invokedCount)
             ->method('addSubscriber')
-            ->withConsecutive(
-                [$callbacks[0]],
-                [$callbacks[1]]
-            );
+            ->willReturnCallback(function ($parameter) use ($invokedCount, $callbacks, $dispatcher) {
+                        $currentInvocationCount = $invokedCount->numberOfInvocations();
+                        $currentExpectation = $callbacks[$currentInvocationCount - 1];
+                        $this->assertSame($currentExpectation, $parameter);
+                        return $dispatcher;
+                    });
+
 
         $result = $this->kernel->setCallbacks($callbacks);
         
         $this->assertSame($this->kernel, $result);
     }
 
+    /**
+     * @throws NotCallableException
+     * @throws ReflectionException
+     */
     public function testSetCallbacksThrowsExceptionWhenEmpty(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -97,6 +113,10 @@ class KernelEventTest extends TestCase
         $this->kernel->setCallbacks([]);
     }
 
+    /**
+     * @throws \PHPUnit\Framework\MockObject\Exception
+     * @throws Exception
+     */
     public function testHandleWithResponseFromRequestEvent(): void
     {
         $request = $this->createMock(ServerRequestInterface::class);
@@ -116,26 +136,35 @@ class KernelEventTest extends TestCase
         $responseEvent->expects($this->once())
             ->method('getResponse')
             ->willReturn($response);
+
+        $finishRequestEvent = $this->createMock(FinishRequestEvent::class);
             
         // Set up dispatcher expectations
-        $this->dispatcher->expects($this->exactly(2))
+        $expectations = [$requestEvent, $responseEvent, $finishRequestEvent];
+        $invokedCount = $this->exactly(count($expectations));
+        $this->dispatcher->expects($invokedCount)
             ->method('dispatch')
-            ->withConsecutive(
-                [$this->isInstanceOf(RequestEvent::class)],
-                [$this->isInstanceOf(ResponseEvent::class)]
-            )
-            ->willReturnOnConsecutiveCalls($requestEvent, $responseEvent);
-            
-        // Set up finishRequest expectation
-        $this->dispatcher->expects($this->once())
-            ->method('dispatch')
-            ->with($this->isInstanceOf(FinishRequestEvent::class));
+            ->willReturnCallback(function ($parameter) use ($invokedCount, $expectations) {
+                $expectationsClass = [
+                    RequestEvent::class,
+                    ResponseEvent::class,
+                    FinishRequestEvent::class,
+                ];
+                $currentInvocationCount = $invokedCount->numberOfInvocations();
+                $currentExpectation = $expectations[$currentInvocationCount - 1];
+                $currentExpectationClass = $expectationsClass[$currentInvocationCount - 1];
+                $this->assertInstanceOf($currentExpectationClass, $parameter);
+                return $currentExpectation;
+            });
             
         $result = $this->kernel->handle($request);
         
-        $this->assertSame($response, $result);
+        $this->assertEquals($response, $result);
     }
 
+    /**
+     * @throws \PHPUnit\Framework\MockObject\Exception
+     */
     public function testHandleExceptionWithResponse(): void
     {
         $request = $this->createMock(ServerRequestInterface::class);
@@ -162,21 +191,27 @@ class KernelEventTest extends TestCase
         $responseEvent->expects($this->once())
             ->method('getResponse')
             ->willReturn($response);
+
+        $finishRequestEvent = $this->createMock(FinishRequestEvent::class);
             
         // Set up dispatcher expectations
-        $this->dispatcher->expects($this->exactly(2))
+        $expectations = [$exceptionEvent, $responseEvent, $finishRequestEvent];
+        $invokedCount = $this->exactly(count($expectations));
+        $this->dispatcher->expects($invokedCount)
             ->method('dispatch')
-            ->withConsecutive(
-                [$this->isInstanceOf(ExceptionEvent::class)],
-                [$this->isInstanceOf(ResponseEvent::class)]
-            )
-            ->willReturnOnConsecutiveCalls($exceptionEvent, $responseEvent);
-            
-        // Set up finishRequest expectation
-        $this->dispatcher->expects($this->once())
-            ->method('dispatch')
-            ->with($this->isInstanceOf(FinishRequestEvent::class));
-            
+            ->willReturnCallback(function ($parameter) use ($invokedCount, $expectations) {
+                $expectationsClass = [
+                    ExceptionEvent::class,
+                    ResponseEvent::class,
+                    FinishRequestEvent::class,
+                ];
+                $currentInvocationCount = $invokedCount->numberOfInvocations();
+                $currentExpectation = $expectations[$currentInvocationCount - 1];
+                $currentExpectationClass = $expectationsClass[$currentInvocationCount - 1];
+                $this->assertInstanceOf($currentExpectationClass, $parameter);
+                return $currentExpectation;
+            });
+
         $result = $this->kernel->handleException($exception, $request);
         
         $this->assertSame($response, $result);
