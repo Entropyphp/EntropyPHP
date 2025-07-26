@@ -27,17 +27,6 @@ class KernelMiddlewareTest extends TestCase
     private KernelMiddleware $kernel;
 
     /**
-     * @throws Exception
-     */
-    protected function setUp(): void
-    {
-        $this->container = $this->createMock(ContainerInterface::class);
-        $this->request = $this->createMock(ServerRequestInterface::class);
-        $this->response = $this->createMock(ResponseInterface::class);
-        $this->kernel = new KernelMiddleware($this->container);
-    }
-
-    /**
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      * @throws Exception
@@ -65,8 +54,9 @@ class KernelMiddlewareTest extends TestCase
         $this->expectExceptionMessage('Aucun middleware n\'a intercepté cette requête');
 
         // Simulate a second call to handle to trigger the exception
-        $kernel = new class($this->container) extends KernelMiddleware {
+        $kernel = new class ($this->container) extends KernelMiddleware {
             private int $callCount = 0;
+
             public function handle(ServerRequestInterface $request): ResponseInterface
             {
                 $this->callCount++;
@@ -85,9 +75,9 @@ class KernelMiddlewareTest extends TestCase
     {
         $middleware1 = $this->createMock(MiddlewareInterface::class);
         $middleware2 = $this->createMock(MiddlewareInterface::class);
-        
+
         $result = $this->kernel->setCallbacks([$middleware1, $middleware2]);
-        
+
         $this->assertSame($this->kernel, $result);
         // Additional assertions to verify middlewares were set could be added if we had getter methods
     }
@@ -96,7 +86,7 @@ class KernelMiddlewareTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Une liste de middlewares doit être passer à ce Kernel');
-        
+
         $this->kernel->setCallbacks([]);
     }
 
@@ -113,7 +103,7 @@ class KernelMiddlewareTest extends TestCase
     {
         $container = $this->createMock(ContainerInterface::class);
         $kernel = new KernelMiddleware($container);
-        
+
         $this->assertSame($container, $kernel->getContainer());
     }
 
@@ -122,7 +112,7 @@ class KernelMiddlewareTest extends TestCase
         $reflection = new \ReflectionClass($this->kernel);
         $property = $reflection->getProperty('request');
         $property->setValue($this->kernel, $this->request);
-        
+
         $this->assertSame($this->request, $this->kernel->getRequest());
     }
 
@@ -133,7 +123,7 @@ class KernelMiddlewareTest extends TestCase
     {
         $newRequest = $this->createMock(ServerRequestInterface::class);
         $result = $this->kernel->setRequest($newRequest);
-        
+
         $this->assertSame($this->kernel, $result);
         $this->assertSame($newRequest, $this->kernel->getRequest());
     }
@@ -144,9 +134,9 @@ class KernelMiddlewareTest extends TestCase
     public function testHandleExceptionRethrowsException(): void
     {
         $exception = new RuntimeException('Test exception');
-        
+
         $this->expectExceptionObject($exception);
-        
+
         $this->kernel->handleException($exception, $this->request);
     }
 
@@ -159,14 +149,25 @@ class KernelMiddlewareTest extends TestCase
         $container = $this->createMock(ContainerInterface::class);
         $routePrefix = '/admin';
         $middlewareClass = 'AdminMiddleware';
-        
+
         // Use reflection to test the protected method
         $kernel = new KernelMiddleware($container);
         $reflection = new \ReflectionClass($kernel);
         $method = $reflection->getMethod('lazyPipe');
-        
+
         $result = $method->invokeArgs($kernel, [$container, $routePrefix, $middlewareClass]);
-        
+
         $this->assertSame($kernel, $result);
+    }
+
+    /**
+     * @throws Exception
+     */
+    protected function setUp(): void
+    {
+        $this->container = $this->createMock(ContainerInterface::class);
+        $this->request = $this->createMock(ServerRequestInterface::class);
+        $this->response = $this->createMock(ResponseInterface::class);
+        $this->kernel = new KernelMiddleware($this->container);
     }
 }

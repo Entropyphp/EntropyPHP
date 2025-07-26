@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Entropy\Tests\Middleware;
 
 use Entropy\Middleware\MethodMiddleware;
+use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
@@ -26,12 +27,15 @@ class MethodMiddlewareTest extends TestCase
         $this->middleware = new MethodMiddleware();
     }
 
+    /**
+     * @throws Exception
+     */
     public function testProcessWithDeleteMethodInBody(): void
     {
         $parsedBody = ['_method' => 'DELETE'];
         $updatedRequest = $this->createMock(ServerRequestInterface::class);
 
-        // Set up request with DELETE in parsed body
+        // Set up our request with DELETE in the parsed body
         $this->request->expects($this->once())
             ->method('getParsedBody')
             ->willReturn($parsedBody);
@@ -52,6 +56,9 @@ class MethodMiddlewareTest extends TestCase
         $this->assertSame($this->response, $result);
     }
 
+    /**
+     * @throws Exception
+     */
     public function testProcessWithPutMethodInBody(): void
     {
         $parsedBody = ['_method' => 'PUT'];
@@ -75,6 +82,9 @@ class MethodMiddlewareTest extends TestCase
         $this->assertSame($this->response, $result);
     }
 
+    /**
+     * @throws Exception
+     */
     public function testProcessWithPatchMethodInBody(): void
     {
         $parsedBody = ['_method' => 'PATCH'];
@@ -148,7 +158,7 @@ class MethodMiddlewareTest extends TestCase
             ->method('getParsedBody')
             ->willReturn(null);
 
-        // withMethod should not be called when parsed body is null
+        // withMethod should not be called when the parsed body is null
         $this->request->expects($this->never())
             ->method('withMethod');
 

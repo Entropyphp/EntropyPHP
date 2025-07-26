@@ -20,6 +20,7 @@ class MethodMiddleware implements MiddlewareInterface
     {
         $parseBody = $request->getParsedBody();
         if (
+            is_array($parseBody) &&
             array_key_exists('_method', $parseBody) &&
             in_array($parseBody['_method'], ['DELETE', 'PUT', 'PATCH'])
         ) {

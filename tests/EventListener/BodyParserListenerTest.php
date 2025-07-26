@@ -7,6 +7,7 @@ namespace Entropy\Tests\EventListener;
 use Entropy\Event\Events;
 use Entropy\Event\RequestEvent;
 use Entropy\EventListener\BodyParserListener;
+use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
@@ -17,49 +18,33 @@ class BodyParserListenerTest extends TestCase
     private ServerRequestInterface|MockObject $request;
     private RequestEvent|MockObject $event;
     private StreamInterface|MockObject $stream;
-    private BodyParserListener $listener;
-
-    protected function setUp(): void
-    {
-        $this->request = $this->createMock(ServerRequestInterface::class);
-        $this->event = $this->createMock(RequestEvent::class);
-        $this->stream = $this->createMock(StreamInterface::class);
-        
-        // Default setup for event to return request
-        $this->event->method('getRequest')
-            ->willReturn($this->request);
-            
-        // Default setup for request to return stream
-        $this->request->method('getBody')
-            ->willReturn($this->stream);
-    }
 
     public function testInvokeWithJsonContentType(): void
     {
         $jsonData = '{"name":"John","age":30}';
         $expected = ['name' => 'John', 'age' => 30];
-        
+
         // Set up request with JSON content type
         $this->request->method('getHeaderLine')
             ->with('Content-Type')
             ->willReturn('application/json');
-            
+
         $this->request->method('getMethod')
             ->willReturn('POST');
-            
+
         $this->stream->method('getContents')
             ->willReturn($jsonData);
-            
-        // Expect the request to be updated with parsed body
+
+        // Expect the request to be updated with a parsed body
         $this->request->expects($this->once())
             ->method('withParsedBody')
             ->with($expected)
             ->willReturn($this->request);
-            
+
         $this->event->expects($this->once())
             ->method('setRequest')
             ->with($this->request);
-            
+
         $listener = new BodyParserListener();
         $listener($this->event);
     }
@@ -69,11 +54,11 @@ class BodyParserListenerTest extends TestCase
         // Set up request with unsupported method
         $this->request->method('getMethod')
             ->willReturn('GET');
-            
+
         // Should not process the body for GET requests
         $this->request->expects($this->never())
             ->method('getHeaderLine');
-            
+
         $listener = new BodyParserListener();
         $listener($this->event);
     }
@@ -83,15 +68,15 @@ class BodyParserListenerTest extends TestCase
         // Set up request with unsupported content type
         $this->request->method('getMethod')
             ->willReturn('POST');
-            
+
         $this->request->method('getHeaderLine')
             ->with('Content-Type')
             ->willReturn('application/xml');
-            
+
         // Should not try to parse XML by default
         $this->stream->expects($this->never())
             ->method('getContents');
-            
+
         $listener = new BodyParserListener();
         $listener($this->event);
     }
@@ -100,18 +85,18 @@ class BodyParserListenerTest extends TestCase
     {
         $csvData = "name,age\nJohn,30";
         $expected = [['name' => 'John', 'age' => '30']];
-        
+
         // Set up request with custom content type
         $this->request->method('getMethod')
             ->willReturn('POST');
-            
+
         $this->request->method('getHeaderLine')
             ->with('Content-Type')
             ->willReturn('text/csv');
-            
+
         $this->stream->method('getContents')
             ->willReturn($csvData);
-            
+
         // Create a custom CSV parser
         $csvParser = function ($body) {
             $lines = explode("\n", trim($body));
@@ -122,21 +107,21 @@ class BodyParserListenerTest extends TestCase
             }
             return $result;
         };
-        
+
         // Create listener with custom parser
         $listener = new BodyParserListener(['json' => false]);
         $listener->addParser(['text/csv'], $csvParser);
-        
-        // Expect the request to be updated with parsed body
+
+        // Expect the request to be updated with a parsed body
         $this->request->expects($this->once())
             ->method('withParsedBody')
             ->with($expected)
             ->willReturn($this->request);
-            
+
         $this->event->expects($this->once())
             ->method('setRequest')
             ->with($this->request);
-            
+
         $listener($this->event);
     }
 
@@ -145,20 +130,20 @@ class BodyParserListenerTest extends TestCase
         // Set up request with empty body
         $this->request->method('getMethod')
             ->willReturn('POST');
-            
+
         $this->request->method('getHeaderLine')
             ->with('Content-Type')
             ->willReturn('application/json');
-            
+
         $this->stream->method('getContents')
             ->willReturn('');
-            
-        // Should parse empty JSON as empty array
+
+        // Should parse empty JSON as an empty array
         $this->request->expects($this->once())
             ->method('withParsedBody')
             ->with([])
             ->willReturn($this->request);
-            
+
         $listener = new BodyParserListener();
         $listener($this->event);
     }
@@ -166,7 +151,7 @@ class BodyParserListenerTest extends TestCase
     public function testGetSubscribedEvents(): void
     {
         $subscribedEvents = BodyParserListener::getSubscribedEvents();
-        
+
         $this->assertIsArray($subscribedEvents);
         $this->assertArrayHasKey(Events::REQUEST, $subscribedEvents);
         $this->assertIsInt($subscribedEvents[Events::REQUEST]);
@@ -176,11 +161,11 @@ class BodyParserListenerTest extends TestCase
     {
         $methods = ['POST', 'PUT'];
         $listener = new BodyParserListener();
-        
+
         // Test setter returns self for chaining
         $result = $listener->setMethods($methods);
         $this->assertSame($listener, $result);
-        
+
         // Test getter returns the set methods
         $this->assertSame($methods, $listener->getMethods());
     }
@@ -188,18 +173,36 @@ class BodyParserListenerTest extends TestCase
     public function testAddAndGetParsers(): void
     {
         $listener = new BodyParserListener(['json' => false]);
-        
+
         // Test adding a parser
         $parser = function ($body) {
             return ['parsed' => $body];
         };
-        
+
         $result = $listener->addParser(['test/type'], $parser);
         $this->assertSame($listener, $result);
-        
+
         // Test getting parsers
         $parsers = $listener->getParsers();
         $this->assertArrayHasKey('test/type', $parsers);
         $this->assertSame($parser, $parsers['test/type']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    protected function setUp(): void
+    {
+        $this->request = $this->createMock(ServerRequestInterface::class);
+        $this->event = $this->createMock(RequestEvent::class);
+        $this->stream = $this->createMock(StreamInterface::class);
+
+        // Default setup for event to return request
+        $this->event->method('getRequest')
+            ->willReturn($this->request);
+
+        // Default setup for request to return stream
+        $this->request->method('getBody')
+            ->willReturn($this->stream);
     }
 }

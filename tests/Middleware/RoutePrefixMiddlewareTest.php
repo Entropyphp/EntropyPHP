@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Entropy\Tests\Middleware;
 
 use Entropy\Middleware\RoutePrefixMiddleware;
+use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
@@ -23,6 +26,9 @@ class RoutePrefixMiddlewareTest extends TestCase
     private MiddlewareInterface|MockObject $middleware;
     private UriInterface|MockObject $uri;
 
+    /**
+     * @throws Exception
+     */
     protected function setUp(): void
     {
         $this->container = $this->createMock(ContainerInterface::class);
@@ -33,6 +39,10 @@ class RoutePrefixMiddlewareTest extends TestCase
         $this->uri = $this->createMock(UriInterface::class);
     }
 
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function testProcessWithMatchingPrefix(): void
     {
         $prefix = '/api';
@@ -49,13 +59,13 @@ class RoutePrefixMiddlewareTest extends TestCase
             ->method('getUri')
             ->willReturn($this->uri);
 
-        // Set up container to return the middleware
+        // Set up our container to return the middleware
         $this->container->expects($this->once())
             ->method('get')
             ->with($middlewareService)
             ->willReturn($this->middleware);
 
-        // Set up middleware to return response
+        // Set up middleware to return our response
         $this->middleware->expects($this->once())
             ->method('process')
             ->with($this->request, $this->handler)
@@ -71,6 +81,10 @@ class RoutePrefixMiddlewareTest extends TestCase
         $this->assertSame($this->response, $result);
     }
 
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function testProcessWithNonMatchingPrefix(): void
     {
         $prefix = '/api';
@@ -107,6 +121,10 @@ class RoutePrefixMiddlewareTest extends TestCase
         $this->assertSame($this->response, $result);
     }
 
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function testProcessWithEmptyPath(): void
     {
         $prefix = '';
@@ -123,7 +141,7 @@ class RoutePrefixMiddlewareTest extends TestCase
             ->method('getUri')
             ->willReturn($this->uri);
 
-        // With empty prefix, all paths should match
+        // With an empty prefix, all paths should match
         $this->container->expects($this->once())
             ->method('get')
             ->with($middlewareService)
@@ -144,6 +162,10 @@ class RoutePrefixMiddlewareTest extends TestCase
         $this->assertSame($this->response, $result);
     }
 
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function testProcessWithCaseInsensitiveMatching(): void
     {
         $prefix = '/API';

@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Entropy\Middleware\Stack;
 
+use Closure;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -75,11 +76,11 @@ trait MiddlewareAwareStackTrait
      * Get first middleware from the stack
      *
      * @param ContainerInterface $c
-     * @return MiddlewareInterface|null
+     * @return MiddlewareInterface|Closure|null
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    public function shiftMiddleware(ContainerInterface $c): ?MiddlewareInterface
+    public function shiftMiddleware(ContainerInterface $c): null|MiddlewareInterface|Closure
     {
         $middleware =  array_shift($this->middlewares);
         if ($middleware === null) {

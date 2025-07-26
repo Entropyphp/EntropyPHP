@@ -11,7 +11,7 @@ class EventTest extends TestCase
 {
     public function testEventNameReturnsConstantName(): void
     {
-        // Create a concrete implementation of Event for testing
+        // Create a concrete implementation of an Event for testing
         $concreteEvent = new class extends Event {
             public const NAME = 'test.event';
         };

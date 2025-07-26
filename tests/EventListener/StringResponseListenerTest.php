@@ -7,6 +7,7 @@ namespace Entropy\Tests\EventListener;
 use Entropy\Event\ViewEvent;
 use Entropy\EventListener\StringResponseListener;
 use GuzzleHttp\Psr7\Response;
+use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
@@ -16,16 +17,9 @@ class StringResponseListenerTest extends TestCase
     private ViewEvent|MockObject $event;
     private StringResponseListener $listener;
 
-    protected function setUp(): void
-    {
-        $this->event = $this->createMock(ViewEvent::class);
-        $this->listener = new StringResponseListener();
-    }
-
     public function testInvokeWithStringResult(): void
     {
         $stringResult = 'Hello, World!';
-        $expectedResponse = new Response(200, [], $stringResult);
 
         $this->event->expects($this->once())
             ->method('getResult')
@@ -35,8 +29,8 @@ class StringResponseListenerTest extends TestCase
         $this->event->expects($this->once())
             ->method('setResponse')
             ->with($this->callback(function (ResponseInterface $response) use ($stringResult) {
-                return (string) $response->getBody() === $stringResult && 
-                       $response->getStatusCode() === 200;
+                return (string)$response->getBody() === $stringResult &&
+                    $response->getStatusCode() === 200;
             }));
 
         ($this->listener)($this->event);
@@ -83,8 +77,8 @@ class StringResponseListenerTest extends TestCase
         $this->event->expects($this->once())
             ->method('setResponse')
             ->with($this->callback(function (ResponseInterface $response) {
-                return (string) $response->getBody() === '' && 
-                       $response->getStatusCode() === 200;
+                return (string)$response->getBody() === '' &&
+                    $response->getStatusCode() === 200;
             }));
 
         ($this->listener)($this->event);
@@ -93,9 +87,18 @@ class StringResponseListenerTest extends TestCase
     public function testGetSubscribedEvents(): void
     {
         $subscribedEvents = StringResponseListener::getSubscribedEvents();
-        
+
         $this->assertIsArray($subscribedEvents);
         $this->assertArrayHasKey(ViewEvent::NAME, $subscribedEvents);
         $this->assertIsInt($subscribedEvents[ViewEvent::NAME]);
+    }
+
+    /**
+     * @throws Exception
+     */
+    protected function setUp(): void
+    {
+        $this->event = $this->createMock(ViewEvent::class);
+        $this->listener = new StringResponseListener();
     }
 }

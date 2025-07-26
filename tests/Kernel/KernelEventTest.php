@@ -12,7 +12,6 @@ use Entropy\Kernel\KernelEvent;
 use Exception;
 use Invoker\CallableResolver;
 use Invoker\Exception\NotCallableException;
-use Invoker\ParameterResolver\ParameterResolver;
 use Invoker\ParameterResolver\ResolverChain;
 use Pg\Event\EventDispatcher;
 use Pg\Event\EventSubscriberInterface;
@@ -30,24 +29,6 @@ class KernelEventTest extends TestCase
     private ContainerInterface|MockObject $container;
     private KernelEvent $kernel;
 
-    /**
-     * @throws \PHPUnit\Framework\MockObject\Exception
-     */
-    protected function setUp(): void
-    {
-        $this->dispatcher = $this->createMock(EventDispatcher::class);
-        $callableResolver = $this->createMock(CallableResolver::class);
-        $paramsResolver = $this->createMock(ResolverChain::class);
-        $this->container = $this->createMock(ContainerInterface::class);
-
-        $this->kernel = new KernelEvent(
-            $this->dispatcher,
-            $callableResolver,
-            $paramsResolver,
-            $this->container
-        );
-    }
-
     public function testGetDispatcher(): void
     {
         $this->assertSame($this->dispatcher, $this->kernel->getDispatcher());
@@ -64,9 +45,9 @@ class KernelEventTest extends TestCase
     public function testSetAndGetRequest(): void
     {
         $request = $this->createMock(ServerRequestInterface::class);
-        
+
         $result = $this->kernel->setRequest($request);
-        
+
         $this->assertSame($this->kernel, $result);
         $this->assertSame($request, $this->kernel->getRequest());
     }
@@ -89,15 +70,15 @@ class KernelEventTest extends TestCase
             ->expects($invokedCount)
             ->method('addSubscriber')
             ->willReturnCallback(function ($parameter) use ($invokedCount, $callbacks, $dispatcher) {
-                        $currentInvocationCount = $invokedCount->numberOfInvocations();
-                        $currentExpectation = $callbacks[$currentInvocationCount - 1];
-                        $this->assertSame($currentExpectation, $parameter);
-                        return $dispatcher;
-                    });
+                $currentInvocationCount = $invokedCount->numberOfInvocations();
+                $currentExpectation = $callbacks[$currentInvocationCount - 1];
+                $this->assertSame($currentExpectation, $parameter);
+                return $dispatcher;
+            });
 
 
         $result = $this->kernel->setCallbacks($callbacks);
-        
+
         $this->assertSame($this->kernel, $result);
     }
 
@@ -109,7 +90,7 @@ class KernelEventTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage("Une liste de listeners doit être passer à ce Kernel");
-        
+
         $this->kernel->setCallbacks([]);
     }
 
@@ -121,7 +102,7 @@ class KernelEventTest extends TestCase
     {
         $request = $this->createMock(ServerRequestInterface::class);
         $response = $this->createMock(ResponseInterface::class);
-        
+
         // Mock RequestEvent
         $requestEvent = $this->createMock(RequestEvent::class);
         $requestEvent->expects($this->once())
@@ -130,7 +111,7 @@ class KernelEventTest extends TestCase
         $requestEvent->expects($this->once())
             ->method('getResponse')
             ->willReturn($response);
-            
+
         // Mock ResponseEvent
         $responseEvent = $this->createMock(ResponseEvent::class);
         $responseEvent->expects($this->once())
@@ -138,7 +119,7 @@ class KernelEventTest extends TestCase
             ->willReturn($response);
 
         $finishRequestEvent = $this->createMock(FinishRequestEvent::class);
-            
+
         // Set up dispatcher expectations
         $expectations = [$requestEvent, $responseEvent, $finishRequestEvent];
         $invokedCount = $this->exactly(count($expectations));
@@ -156,9 +137,9 @@ class KernelEventTest extends TestCase
                 $this->assertInstanceOf($currentExpectationClass, $parameter);
                 return $currentExpectation;
             });
-            
+
         $result = $this->kernel->handle($request);
-        
+
         $this->assertEquals($response, $result);
     }
 
@@ -170,10 +151,10 @@ class KernelEventTest extends TestCase
         $request = $this->createMock(ServerRequestInterface::class);
         $exception = new Exception('Test exception');
         $response = $this->createMock(ResponseInterface::class);
-        
+
         // Set up the request in the kernel
         $this->kernel->setRequest($request);
-        
+
         // Mock ExceptionEvent
         $exceptionEvent = $this->createMock(ExceptionEvent::class);
         $exceptionEvent->expects($this->once())
@@ -185,7 +166,7 @@ class KernelEventTest extends TestCase
         $exceptionEvent->expects($this->once())
             ->method('getException')
             ->willReturn($exception);
-            
+
         // Mock ResponseEvent
         $responseEvent = $this->createMock(ResponseEvent::class);
         $responseEvent->expects($this->once())
@@ -193,7 +174,7 @@ class KernelEventTest extends TestCase
             ->willReturn($response);
 
         $finishRequestEvent = $this->createMock(FinishRequestEvent::class);
-            
+
         // Set up dispatcher expectations
         $expectations = [$exceptionEvent, $responseEvent, $finishRequestEvent];
         $invokedCount = $this->exactly(count($expectations));
@@ -213,7 +194,25 @@ class KernelEventTest extends TestCase
             });
 
         $result = $this->kernel->handleException($exception, $request);
-        
+
         $this->assertSame($response, $result);
+    }
+
+    /**
+     * @throws \PHPUnit\Framework\MockObject\Exception
+     */
+    protected function setUp(): void
+    {
+        $this->dispatcher = $this->createMock(EventDispatcher::class);
+        $callableResolver = $this->createMock(CallableResolver::class);
+        $paramsResolver = $this->createMock(ResolverChain::class);
+        $this->container = $this->createMock(ContainerInterface::class);
+
+        $this->kernel = new KernelEvent(
+            $this->dispatcher,
+            $callableResolver,
+            $paramsResolver,
+            $this->container
+        );
     }
 }
