@@ -7,9 +7,12 @@ namespace Entropy\Tests\Kernel;
 use Entropy\Kernel\KernelMiddleware;
 use Entropy\Middleware\CombinedMiddleware;
 use InvalidArgumentException;
+use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -23,6 +26,9 @@ class KernelMiddlewareTest extends TestCase
     private ResponseInterface|MockObject $response;
     private KernelMiddleware $kernel;
 
+    /**
+     * @throws Exception
+     */
     protected function setUp(): void
     {
         $this->container = $this->createMock(ContainerInterface::class);
@@ -31,27 +37,28 @@ class KernelMiddlewareTest extends TestCase
         $this->kernel = new KernelMiddleware($this->container);
     }
 
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws Exception
+     */
     public function testHandleProcessesRequestThroughMiddlewareStack(): void
     {
         $middleware = $this->createMock(MiddlewareInterface::class);
-        
-        // Mock CombinedMiddleware to return our response
-        $combinedMiddleware = $this->createMock(CombinedMiddleware::class);
-        $combinedMiddleware->expects($this->once())
+        $middleware->expects($this->once())
             ->method('process')
-            ->with($this->request, $this->kernel)
+            ->with($this->request, $this->isInstanceOf(CombinedMiddleware::class))
             ->willReturn($this->response);
 
-        // Mock container to return our middleware
-        $this->container->expects($this->once())
-            ->method('get')
-            ->with(CombinedMiddleware::class)
-            ->willReturn($combinedMiddleware);
-
+        $this->kernel->setCallbacks([$middleware]);
         $result = $this->kernel->handle($this->request);
         $this->assertSame($this->response, $result);
     }
 
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function testHandleThrowsExceptionWhenNoMiddlewareHandlesRequest(): void
     {
         $this->expectException(\Exception::class);
@@ -63,9 +70,6 @@ class KernelMiddlewareTest extends TestCase
             public function handle(ServerRequestInterface $request): ResponseInterface
             {
                 $this->callCount++;
-                if ($this->callCount > 1) {
-                    return parent::handle($request);
-                }
                 return parent::handle($request);
             }
         };
@@ -74,6 +78,9 @@ class KernelMiddlewareTest extends TestCase
         $kernel->handle($this->request); // This should trigger the exception
     }
 
+    /**
+     * @throws Exception
+     */
     public function testSetCallbacksWithValidMiddlewares(): void
     {
         $middleware1 = $this->createMock(MiddlewareInterface::class);
@@ -99,6 +106,9 @@ class KernelMiddlewareTest extends TestCase
         $this->assertSame($this->kernel, $result);
     }
 
+    /**
+     * @throws Exception
+     */
     public function testGetContainerReturnsInjectedContainer(): void
     {
         $container = $this->createMock(ContainerInterface::class);
@@ -111,12 +121,14 @@ class KernelMiddlewareTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->kernel);
         $property = $reflection->getProperty('request');
-        $property->setAccessible(true);
         $property->setValue($this->kernel, $this->request);
         
         $this->assertSame($this->request, $this->kernel->getRequest());
     }
 
+    /**
+     * @throws Exception
+     */
     public function testSetRequestReturnsSelfForMethodChaining(): void
     {
         $newRequest = $this->createMock(ServerRequestInterface::class);
@@ -126,6 +138,9 @@ class KernelMiddlewareTest extends TestCase
         $this->assertSame($newRequest, $this->kernel->getRequest());
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function testHandleExceptionRethrowsException(): void
     {
         $exception = new RuntimeException('Test exception');
@@ -135,17 +150,20 @@ class KernelMiddlewareTest extends TestCase
         $this->kernel->handleException($exception, $this->request);
     }
 
+    /**
+     * @throws \ReflectionException
+     * @throws Exception
+     */
     public function testLazyPipeAddsRoutePrefixMiddleware(): void
     {
         $container = $this->createMock(ContainerInterface::class);
         $routePrefix = '/admin';
         $middlewareClass = 'AdminMiddleware';
         
-        // Use reflection to test protected method
+        // Use reflection to test the protected method
         $kernel = new KernelMiddleware($container);
         $reflection = new \ReflectionClass($kernel);
         $method = $reflection->getMethod('lazyPipe');
-        $method->setAccessible(true);
         
         $result = $method->invokeArgs($kernel, [$container, $routePrefix, $middlewareClass]);
         
