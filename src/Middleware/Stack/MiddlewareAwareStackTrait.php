@@ -20,18 +20,6 @@ trait MiddlewareAwareStackTrait
     protected array $middlewares = [];
 
     /**
-     * Add middleware
-     *
-     * @param callable|string|MiddlewareInterface $middleware
-     * @return self
-     */
-    public function middleware(callable|MiddlewareInterface|string $middleware): static
-    {
-        $this->middlewares[] = $middleware;
-        return $this;
-    }
-
-    /**
      * Add a middlewares array
      *
      * @param string[]|MiddlewareInterface[]|callable[] $middlewares
@@ -42,6 +30,18 @@ trait MiddlewareAwareStackTrait
         foreach ($middlewares as $middleware) {
             $this->middleware($middleware);
         }
+        return $this;
+    }
+
+    /**
+     * Add middleware
+     *
+     * @param callable|string|MiddlewareInterface $middleware
+     * @return self
+     */
+    public function middleware(callable|MiddlewareInterface|string $middleware): static
+    {
+        $this->middlewares[] = $middleware;
         return $this;
     }
 
@@ -82,14 +82,18 @@ trait MiddlewareAwareStackTrait
      */
     public function shiftMiddleware(ContainerInterface $c): null|MiddlewareInterface|Closure|callable
     {
-        $middleware =  array_shift($this->middlewares);
+        $middleware = array_shift($this->middlewares);
         if ($middleware === null) {
             return null;
         }
 
         if (is_string($middleware)) {
+            if (!$c->has($middleware)) {
+                return null;
+            }
             $middleware = $c->get($middleware);
         }
+
         return $middleware;
     }
 
