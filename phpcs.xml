@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+
+<ruleset name="EntropyPHP">
+  <description>Formattage</description>
+
+  <arg name="colors"/>
+  <arg value="p"/>
+
+  <file>src</file>
+
+  <rule ref="PSR12">
+  </rule>
+</ruleset>
