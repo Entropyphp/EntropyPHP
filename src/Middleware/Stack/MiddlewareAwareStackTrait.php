@@ -76,11 +76,11 @@ trait MiddlewareAwareStackTrait
      * Get first middleware from the stack
      *
      * @param ContainerInterface $c
-     * @return MiddlewareInterface|Closure|null
+     * @return MiddlewareInterface|Closure|callable|null
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    public function shiftMiddleware(ContainerInterface $c): null|MiddlewareInterface|Closure
+    public function shiftMiddleware(ContainerInterface $c): null|MiddlewareInterface|Closure|callable
     {
         $middleware =  array_shift($this->middlewares);
         if ($middleware === null) {
