@@ -61,17 +61,6 @@ class KernelMiddleware implements KernelInterface, RequestHandlerInterface
 
     /**
      *
-     * @param string $routePrefix
-     * @param string|null $middleware
-     * @return self
-     */
-    public function pipe(string $routePrefix, ?string $middleware = null): self
-    {
-        return $this->lazyPipe($this->getContainer(), $routePrefix, $middleware);
-    }
-
-    /**
-     *
      * @param string[]|MiddlewareInterface[]|callable[] $callbacks
      * @return self
      */
@@ -83,17 +72,6 @@ class KernelMiddleware implements KernelInterface, RequestHandlerInterface
 
         $this->middlewares($callbacks);
         return $this;
-    }
-
-    /**
-     *
-     * @return object
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
-    private function getMiddleware(): object
-    {
-        return $this->shiftMiddleware($this->getContainer());
     }
 
     /**

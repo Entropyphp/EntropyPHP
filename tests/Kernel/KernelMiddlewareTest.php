@@ -90,12 +90,6 @@ class KernelMiddlewareTest extends TestCase
         $this->kernel->setCallbacks([]);
     }
 
-    public function testPipeMethodReturnsSelfForMethodChaining(): void
-    {
-        $result = $this->kernel->pipe('/api', 'ApiMiddleware');
-        $this->assertSame($this->kernel, $result);
-    }
-
     /**
      * @throws Exception
      */
@@ -138,26 +132,6 @@ class KernelMiddlewareTest extends TestCase
         $this->expectExceptionObject($exception);
 
         $this->kernel->handleException($exception, $this->request);
-    }
-
-    /**
-     * @throws \ReflectionException
-     * @throws Exception
-     */
-    public function testLazyPipeAddsRoutePrefixMiddleware(): void
-    {
-        $container = $this->createMock(ContainerInterface::class);
-        $routePrefix = '/admin';
-        $middlewareClass = 'AdminMiddleware';
-
-        // Use reflection to test the protected method
-        $kernel = new KernelMiddleware($container);
-        $reflection = new \ReflectionClass($kernel);
-        $method = $reflection->getMethod('lazyPipe');
-
-        $result = $method->invokeArgs($kernel, [$container, $routePrefix, $middlewareClass]);
-
-        $this->assertSame($kernel, $result);
     }
 
     /**

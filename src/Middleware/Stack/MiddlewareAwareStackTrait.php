@@ -58,21 +58,6 @@ trait MiddlewareAwareStackTrait
     }
 
     /**
-     * @param string $routePrefix
-     * @param string|null $middleware
-     * @param ContainerInterface $c
-     * @return self
-     */
-    public function lazyPipe(ContainerInterface $c, string $routePrefix, ?string $middleware = null): static
-    {
-        $middleware = $middleware ?
-            new RoutePrefixMiddleware($c, $routePrefix, $middleware) :
-            $routePrefix;
-        $this->middlewares[] = $middleware;
-        return $this;
-    }
-
-    /**
      * Get first middleware from the stack
      *
      * @param ContainerInterface $c
