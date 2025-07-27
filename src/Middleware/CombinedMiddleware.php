@@ -2,6 +2,7 @@
 
 namespace Entropy\Middleware;
 
+use Pg\Middleware\Stack\MiddlewareAwareStackTrait;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
@@ -9,7 +10,6 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Entropy\Middleware\Stack\MiddlewareAwareStackTrait;
 
 class CombinedMiddleware implements MiddlewareInterface, RequestHandlerInterface
 {

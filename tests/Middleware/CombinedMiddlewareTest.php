@@ -122,6 +122,11 @@ class CombinedMiddlewareTest extends TestCase
 
         // Set up the container to return the mock middleware
         $this->container->expects($this->once())
+            ->method('has')
+            ->with('middleware.service')
+            ->willReturn(true);
+
+        $this->container->expects($this->once())
             ->method('get')
             ->with('middleware.service')
             ->willReturn($mockMiddleware);

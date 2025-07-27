@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Entropy\Kernel;
 
 use Exception;
+use Pg\Middleware\Stack\MiddlewareAwareStackTrait;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Throwable;
@@ -15,7 +16,6 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Entropy\Middleware\Stack\MiddlewareAwareStackTrait;
 
 class KernelMiddleware implements KernelInterface, RequestHandlerInterface
 {
