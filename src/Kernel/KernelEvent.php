@@ -138,13 +138,30 @@ class KernelEvent implements KernelInterface
         return $event->getResponse();
     }
 
-
     /**
      * Publishes the finish request event
      */
     private function finishRequest(ServerRequestInterface $request): void
     {
         $this->dispatcher->dispatch(new FinishRequestEvent($this, $request));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getRequest(): ServerRequestInterface
+    {
+        return $this->request;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setRequest(ServerRequestInterface $request): self
+    {
+        $this->request = $request;
+
+        return $this;
     }
 
     /**
@@ -197,24 +214,6 @@ class KernelEvent implements KernelInterface
     public function getDispatcher(): EventDispatcherInterface
     {
         return $this->dispatcher;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getRequest(): ServerRequestInterface
-    {
-        return $this->request;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function setRequest(ServerRequestInterface $request): self
-    {
-        $this->request = $request;
-
-        return $this;
     }
 
     /**

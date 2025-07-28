@@ -19,7 +19,7 @@ class ControllerEvent extends RequestEvent
         $this->controller = $controller;
     }
 
-    public function getController()
+    public function getController(): mixed
     {
         return $this->controller;
     }

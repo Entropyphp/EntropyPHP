@@ -19,7 +19,7 @@ class ViewEvent extends RequestEvent
         $this->result = $result;
     }
 
-    public function getResult()
+    public function getResult(): mixed
     {
         return $this->result;
     }

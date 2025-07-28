@@ -21,7 +21,7 @@ class ExceptionEvent extends RequestEvent
     }
 
     /**
-     * Get the value of exception
+     * Get the value of the exception
      */
     public function getException(): Throwable
     {
@@ -34,7 +34,7 @@ class ExceptionEvent extends RequestEvent
      * @param Throwable $exception
      * @return  self
      */
-    public function setException(Throwable $exception): static
+    public function setException(Throwable $exception): self
     {
         $this->exception = $exception;
         return $this;
