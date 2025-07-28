@@ -15,7 +15,7 @@ EntropyPHP is a modern PHP framework designed to help developers build web appli
 - **Dependency Injection**: Built-in DI container using PHP-DI
 - **Parameter Resolution**: Automatic resolution of controller parameters
 - **Flexible Routing**: Route-based controller dispatching
-- **Modern PHP**: Requires PHP 8.1+
+- **Modern PHP**: Requires PHP 8.2+
 
 ## License
 
