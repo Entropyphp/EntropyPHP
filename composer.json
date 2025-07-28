@@ -40,5 +40,11 @@
             "name": "willy",
             "email": "william.lety@gmail.com"
         }
-    ]
+    ],
+    "scripts": {
+        "coverage": [
+            "php -dxdebug.mode=coverage ./vendor/bin/phpunit --coverage-text --coverage-html=build/coverage"
+        ],
+        "tests": ["php ./vendor/bin/phpunit"]
+    }
 }
