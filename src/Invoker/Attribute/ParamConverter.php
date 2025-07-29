@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Entropy\Invoker\Annotation;
+namespace Entropy\Invoker\Attribute;
 
 use Attribute;
 use Entropy\Invoker\Exception\InvalidAnnotation;
@@ -10,13 +10,13 @@ use Entropy\Invoker\Exception\InvalidAnnotation;
 use function is_string;
 
 /**
- * ParameterConverter annotation.
+ * ParamConverter annotation.
  *
  * Marks a method as an injection point
  *
  * The first param is the method parameter to convert from route param
  * ```
- * Ex: ParameterConverter("post", options={"id"="post_id"})
+ * Ex: ParamConverter("post", options={"id"="post_id"})
  * ```.
  *
  * @api
@@ -27,7 +27,7 @@ use function is_string;
  *
  */
 #[Attribute(Attribute::TARGET_METHOD | Attribute::TARGET_FUNCTION | Attribute::IS_REPEATABLE)]
-final class ParameterConverter
+final class ParamConverter
 {
     /**
      * Parameters indexed by the parameter number (index) or name.
@@ -51,7 +51,7 @@ final class ParameterConverter
         // Method param name
         if (null === $this->name) {
             throw new InvalidAnnotation(sprintf(
-                '@ParameterConverter("name", options={"id" = "value"}) expects parameter "name", %s given.',
+                '@ParamConverter("name", options={"id" = "value"}) expects parameter "name", %s given.',
                 $name
             ));
         }
