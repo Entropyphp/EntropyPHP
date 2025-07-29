@@ -13,12 +13,6 @@
             "Entropy\\Tests\\": "tests/"
         }
     },
-    "repositories": [
-        {
-            "type": "git",
-            "url": "https://github.com/willy68/pg-utils.git"
-        }
-        ],
     "require": {
         "php": ">=8.2",
         "willy68/pg-eventdispacher": "^1.0",
@@ -27,7 +21,7 @@
         "psr/container": "^1.0 || ^2.0",
         "psr/http-server-middleware": "^1.0",
         "guzzlehttp/psr7": "^2.7",
-        "willy68/pg-utils": "dev-main",
+        "entropyphp/utils": "dev-main",
         "willy68/pg-middleware-stack": "dev-main"
     },
     "require-dev": {
