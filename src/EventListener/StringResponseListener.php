@@ -7,7 +7,7 @@ namespace Entropy\EventListener;
 use GuzzleHttp\Psr7\Response;
 use League\Event\ListenerPriority;
 use Entropy\Event\ViewEvent;
-use Pg\Event\EventSubscriberInterface;
+use Entropy\Event\EventSubscriberInterface;
 
 class StringResponseListener implements EventSubscriberInterface
 {

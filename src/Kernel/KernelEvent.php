@@ -9,7 +9,7 @@ namespace Entropy\Kernel;
 use Exception;
 use Invoker\Exception\NotCallableException;
 use Invoker\ParameterResolver\ResolverChain;
-use Pg\Event\EventDispatcher;
+use Entropy\Event\EventDispatcher;
 use Entropy\Invoker\ParameterResolver\RequestParamResolver;
 use ReflectionException;
 use RuntimeException;

@@ -15,7 +15,7 @@
     },
     "require": {
         "php": ">=8.2",
-        "willy68/pg-eventdispacher": "^1.0",
+        "entropyphp/eventdispacher": "^1.0",
         "php-di/php-di": "^7.0",
         "php-di/invoker": "^2.2",
         "psr/container": "^1.0 || ^2.0",

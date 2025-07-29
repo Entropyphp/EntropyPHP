@@ -22,7 +22,7 @@ use Closure;
 use InvalidArgumentException;
 use Entropy\Event\Events;
 use Entropy\Event\RequestEvent;
-use Pg\Event\EventSubscriberInterface;
+use Entropy\Event\EventSubscriberInterface;
 
 /**
  * Parse encoded request body data.
