@@ -42,13 +42,13 @@ class CombinedMiddleware implements MiddlewareInterface, RequestHandlerInterface
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $middleware = $this->shiftMiddleware($this->container);
-        if (is_null($middleware)) {
-            return $this->handler->handle($request);
-        } elseif ($middleware instanceof MiddlewareInterface) {
+
+        if ($middleware instanceof MiddlewareInterface) {
             return $middleware->process($request, $this);
         } elseif (is_callable($middleware)) {
             return call_user_func_array($middleware, [$request, [$this, 'handle']]);
         }
+
         return $this->handler->handle($request);
     }
 }
