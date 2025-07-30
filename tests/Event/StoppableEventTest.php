@@ -23,4 +23,14 @@ class StoppableEventTest extends TestCase
         $event->stopPropagation();
         $this->assertTrue($event->isPropagationStopped());
     }
+
+    public function testIsInstance(): void
+    {
+        $event = new class extends StoppableEvent {
+            public const NAME = 'test.event';
+        };
+
+        $this->assertSame('test.event', $event->eventName());
+        $this->assertInstanceOf(StoppableEvent::class, $event);
+    }
 }
