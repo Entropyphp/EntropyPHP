@@ -18,4 +18,11 @@ class EventTest extends TestCase
 
         $this->assertSame('test.event', $concreteEvent->eventName());
     }
+
+    public function testEventNameReturnsEmptyString(): void
+    {
+        $event = new Event();
+
+        $this->assertSame('', $event->eventName());
+    }
 }
