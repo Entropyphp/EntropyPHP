@@ -6,12 +6,11 @@ namespace Entropy\Invoker;
 
 use DI\Definition\Resolver\ResolverDispatcher;
 use DI\Invoker\DefinitionParameterResolver;
-use DI\NotFoundException;
 use DI\Proxy\ProxyFactory;
 use Entropy\Invoker\ParameterResolver\AssociativeArrayTypeHintResolver;
 use Invoker\Invoker;
 use Invoker\InvokerInterface;
-use Pg\Utils\File\FileUtils;
+use Entropy\Utils\File\FileUtils;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Invoker\ParameterResolver\ResolverChain;
@@ -38,7 +37,7 @@ class InvokerFactory
         // Default resolvers
         $defaultResolvers = $this->getDefaultResolvers($container, $definitionResolver);
 
-        // Developer resolvers
+        // Custom resolvers
         $otherResolvers = $this->getDeveloperResolvers($container);
 
         return new Invoker(
@@ -50,7 +49,6 @@ class InvokerFactory
     /**
      * @param ContainerInterface $container
      * @return string|null
-     * @throws NotFoundException
      * @throws ContainerExceptionInterface
      */
     private function getProxyDirectory(ContainerInterface $container): ?string

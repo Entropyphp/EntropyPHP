@@ -8,7 +8,7 @@ use DI\Definition\Resolver\ResolverDispatcher;
 use DI\NotFoundException;
 use DI\Proxy\ProxyFactory;
 use Entropy\Invoker\ParameterResolver\AssociativeArrayTypeHintResolver;
-use Pg\Utils\File\FileUtils;
+use Entropy\Utils\File\FileUtils;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use DI\Invoker\DefinitionParameterResolver;
@@ -16,7 +16,6 @@ use Invoker\ParameterResolver\ParameterResolver;
 use Invoker\ParameterResolver\DefaultValueResolver;
 use Invoker\ParameterResolver\NumericArrayResolver;
 use Invoker\ParameterResolver\Container\TypeHintContainerResolver;
-use Psr\Container\NotFoundExceptionInterface;
 
 class ResolverChainFactory
 {
@@ -34,8 +33,8 @@ class ResolverChainFactory
         // Default resolvers
         $defaultResolvers = $this->getDefaultResolvers($container, $definitionResolver);
 
-        // Developer resolvers
-        $otherResolvers = $this->getDeveloperResolvers($container);
+        // Custom resolvers
+        $otherResolvers = $this->getCustomResolvers($container);
 
         return new ControllerParamsResolver(array_merge($otherResolvers, $defaultResolvers));
     }
@@ -43,7 +42,6 @@ class ResolverChainFactory
     /**
      * @param ContainerInterface $container
      * @return string|null
-     * @throws NotFoundException
      * @throws ContainerExceptionInterface
      */
     private function getProxyDirectory(ContainerInterface $container): ?string
@@ -82,9 +80,8 @@ class ResolverChainFactory
 
     /**
      * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
      */
-    private function getDeveloperResolvers(ContainerInterface $container): array
+    private function getCustomResolvers(ContainerInterface $container): array
     {
         if (!$container->has('params.resolvers')) {
             return [];

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Entropy\Tests\Kernel;
 
+use Entropy\Event\ControllerEvent;
+use Entropy\Event\ControllerParamsEvent;
 use Entropy\Event\ExceptionEvent;
 use Entropy\Event\FinishRequestEvent;
 use Entropy\Event\RequestEvent;
@@ -200,6 +202,7 @@ class KernelEventTest extends TestCase
 
         $this->assertSame($response, $result);
     }
+
     /**
      * @throws \PHPUnit\Framework\MockObject\Exception
      * @throws \Exception
@@ -230,6 +233,94 @@ class KernelEventTest extends TestCase
 
         $this->expectException(RuntimeException::class);
         $this->kernel->handle($this->request);
+    }
+
+    /**
+     * @throws \PHPUnit\Framework\MockObject\Exception
+     * @throws \Exception
+     */
+    public function testHandleWithControllerAndParams(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+
+        $resolvedController = function (
+            string $name,
+            ServerRequestInterface $request
+        ) use ($response): ResponseInterface {
+            return $response;
+        };
+
+        $this->request->expects($this->exactly(2))
+            ->method('getAttribute')
+            ->willReturnCallback(function ($name) {
+                return match ($name) {
+                    '_controller' => 'some_controller',
+                    '_params' => ['name' => 'test'],
+                    default => null,
+                };
+            });
+
+        $callableResolver = $this->createMock(CallableResolver::class);
+        $callableResolver->expects($this->once())
+            ->method('resolve')
+            ->with('some_controller')
+            ->willReturn($resolvedController);
+
+        $paramsResolver = $this->createMock(ResolverChain::class);
+        $paramsResolver->expects($this->once())
+            ->method('getParameters')
+            ->willReturn(['test', $this->request]);
+
+        $this->kernel = new KernelEvent(
+            $this->dispatcher,
+            $callableResolver,
+            $paramsResolver,
+            $this->container
+        );
+
+        $responseEvent = $this->createMock(ResponseEvent::class);
+        $responseEvent->expects($this->once())
+            ->method('getResponse')
+            ->willReturn($response);
+
+        // Set up dispatcher expectations for all events that will be dispatched
+        $dispatcherCalls = [
+            [
+                'event' => RequestEvent::class,
+                'return' => new RequestEvent($this->kernel, $this->request)
+            ],
+            [
+                'event' => ControllerEvent::class,
+                'return' => new ControllerEvent($this->kernel, $resolvedController, $this->request)
+            ],
+            [
+                'event' => ControllerParamsEvent::class,
+                'return' => new ControllerParamsEvent(
+                    $this->kernel,
+                    $resolvedController,
+                    ['test', $this->request],
+                    $this->request
+                )
+            ],
+            [
+                'event' => ResponseEvent::class,
+                'return' => $responseEvent
+            ],
+            [
+                'event' => FinishRequestEvent::class,
+                'return' => new FinishRequestEvent($this->kernel, $this->request)
+            ],
+        ];
+
+        $this->dispatcher
+            ->expects($this->exactly(count($dispatcherCalls)))
+            ->method('dispatch')
+            ->willReturnOnConsecutiveCalls(...array_map(fn($call) => $call['return'], $dispatcherCalls));
+
+        $responseResult = $this->kernel->handle($this->request);
+
+        $this->assertSame($response, $responseResult);
+        $this->assertInstanceOf(ResponseInterface::class, $response);
     }
 
     /**
