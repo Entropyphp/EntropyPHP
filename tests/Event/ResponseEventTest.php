@@ -36,6 +36,9 @@ class ResponseEventTest extends TestCase
         $this->assertSame($this->response, $event->getResponse());
     }
 
+    /**
+     * @throws Exception
+     */
     public function testSetResponse(): void
     {
         $event = new ResponseEvent($this->kernel, $this->request, $this->response);
@@ -43,6 +46,7 @@ class ResponseEventTest extends TestCase
 
         $event->setResponse($newResponse);
 
+        $this->assertTrue($event->hasResponse());
         $this->assertSame($newResponse, $event->getResponse());
     }
 
@@ -55,5 +59,20 @@ class ResponseEventTest extends TestCase
         $event->stopPropagation();
 
         $this->assertTrue($event->isPropagationStopped());
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testSetRequest(): void
+    {
+        $request = $this->createMock(ServerRequestInterface::class);
+        $event = new ResponseEvent($this->kernel, $this->request, $this->response);
+
+        $this->kernel->expects($this->once())->method('setRequest')->with($request);
+
+        $event->setRequest($request);
+
+        $this->assertSame($request, $event->getRequest());
     }
 }

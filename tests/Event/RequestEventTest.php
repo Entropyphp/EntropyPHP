@@ -71,4 +71,19 @@ class RequestEventTest extends TestCase
 
         $this->assertSame($this->request, $event->getRequest());
     }
+
+    /**
+     * @throws Exception
+     */
+    public function testSetRequest(): void
+    {
+        $request = $this->createMock(ServerRequestInterface::class);
+        $event = new RequestEvent($this->kernel, $this->request);
+
+        $this->kernel->expects($this->once())->method('setRequest')->with($request);
+
+        $event->setRequest($request);
+
+        $this->assertSame($request, $event->getRequest());
+    }
 }
