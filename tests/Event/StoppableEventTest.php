@@ -21,18 +21,14 @@ class StoppableEventTest extends TestCase
 
     public function testPropagationIsNotStoppedByDefault(): void
     {
-        $event = new class extends StoppableEvent {
-            public const NAME = 'test.stoppable.event';
-        };
+        $event = new StoppableEvent();
 
         $this->assertFalse($event->isPropagationStopped());
     }
 
     public function testStopPropagationSetsFlag(): void
     {
-        $event = new class extends StoppableEvent {
-            public const NAME = 'test.stoppable.event';
-        };
+        $event = new StoppableEvent();
 
         $event->stopPropagation();
         $this->assertTrue($event->isPropagationStopped());
