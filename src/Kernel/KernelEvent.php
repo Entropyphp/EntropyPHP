@@ -149,24 +149,6 @@ class KernelEvent implements KernelInterface
     /**
      * @inheritDoc
      */
-    public function getRequest(): ServerRequestInterface
-    {
-        return $this->request;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function setRequest(ServerRequestInterface $request): self
-    {
-        $this->request = $request;
-
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function handleException(Throwable $e, ServerRequestInterface $request): ResponseInterface
     {
         $event = new ExceptionEvent($this, $request, $e);
@@ -188,6 +170,24 @@ class KernelEvent implements KernelInterface
         } catch (Throwable) {
             return $response;
         }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getRequest(): ServerRequestInterface
+    {
+        return $this->request;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setRequest(ServerRequestInterface $request): self
+    {
+        $this->request = $request;
+
+        return $this;
     }
 
     /**

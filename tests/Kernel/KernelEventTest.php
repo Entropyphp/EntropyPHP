@@ -21,13 +21,16 @@ use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\UriInterface;
 use ReflectionException;
+use RuntimeException;
 
 class KernelEventTest extends TestCase
 {
     private EventDispatcherInterface|MockObject $dispatcher;
     private ContainerInterface|MockObject $container;
     private KernelEvent $kernel;
+    private ServerRequestInterface|MockObject $request;
 
     public function testGetDispatcher(): void
     {
@@ -197,6 +200,37 @@ class KernelEventTest extends TestCase
 
         $this->assertSame($response, $result);
     }
+    /**
+     * @throws \PHPUnit\Framework\MockObject\Exception
+     * @throws \Exception
+     */
+    public function testHandleWithoutController(): void
+    {
+        $requestEvent = new RequestEvent($this->kernel, $this->request);
+
+        $uri = $this->createMock(UriInterface::class);
+        $uri->expects($this->once())
+            ->method('getPath')
+            ->willReturn('/test');
+
+        $this->request
+            ->expects($this->once())
+            ->method('getAttribute')
+            ->with('_controller')
+            ->willReturn(null);
+        $this->request
+            ->expects($this->once())
+            ->method('getUri')
+            ->willReturn($uri);
+
+        $this->dispatcher
+            ->expects($this->once())
+            ->method('dispatch')
+            ->willReturn($requestEvent);
+
+        $this->expectException(RuntimeException::class);
+        $this->kernel->handle($this->request);
+    }
 
     /**
      * @throws \PHPUnit\Framework\MockObject\Exception
@@ -207,6 +241,7 @@ class KernelEventTest extends TestCase
         $callableResolver = $this->createMock(CallableResolver::class);
         $paramsResolver = $this->createMock(ResolverChain::class);
         $this->container = $this->createMock(ContainerInterface::class);
+        $this->request = $this->createMock(ServerRequestInterface::class);
 
         $this->kernel = new KernelEvent(
             $this->dispatcher,
