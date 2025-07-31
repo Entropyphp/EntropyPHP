@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Entropy\Invoker;
 
 use DI\Definition\Resolver\ResolverDispatcher;
-use DI\NotFoundException;
 use DI\Proxy\ProxyFactory;
 use Entropy\Invoker\ParameterResolver\AssociativeArrayTypeHintResolver;
 use Entropy\Utils\File\FileUtils;
@@ -22,7 +21,6 @@ class ResolverChainFactory
     /**
      * @param ContainerInterface $container
      * @return ParameterResolver
-     * @throws NotFoundException
      * @throws ContainerExceptionInterface
      */
     public function __invoke(ContainerInterface $container): ParameterResolver

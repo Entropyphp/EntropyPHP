@@ -17,7 +17,6 @@ use Invoker\ParameterResolver\ResolverChain;
 use Invoker\ParameterResolver\DefaultValueResolver;
 use Invoker\ParameterResolver\NumericArrayResolver;
 use Invoker\ParameterResolver\Container\TypeHintContainerResolver;
-use Psr\Container\NotFoundExceptionInterface;
 
 class InvokerFactory
 {
@@ -27,7 +26,6 @@ class InvokerFactory
      * @param ContainerInterface $container
      * @return InvokerInterface
      * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
      */
     public function __invoke(ContainerInterface $container): InvokerInterface
     {
@@ -38,7 +36,7 @@ class InvokerFactory
         $defaultResolvers = $this->getDefaultResolvers($container, $definitionResolver);
 
         // Custom resolvers
-        $otherResolvers = $this->getDeveloperResolvers($container);
+        $otherResolvers = $this->getCustomResolvers($container);
 
         return new Invoker(
             new ResolverChain(array_merge($otherResolvers, $defaultResolvers)),
@@ -87,9 +85,8 @@ class InvokerFactory
 
     /**
      * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
      */
-    private function getDeveloperResolvers(ContainerInterface $container): array
+    private function getCustomResolvers(ContainerInterface $container): array
     {
         if (!$container->has('params.resolvers')) {
             return [];
