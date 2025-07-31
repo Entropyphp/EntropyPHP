@@ -53,7 +53,7 @@ class BodyParserListener implements EventSubscriberInterface
      *
      * ### Options
      *
-     * - `json` Set to false to disable JSON body parsing.
+     * - `json` Set false to disable JSON body parsing.
      * - `xml` Set to true to enable XML parsing. Defaults to false, as XML
      *   handling requires more care than JSON does.
      * - `methods` The HTTP methods to parse on. Defaults to PUT, POST, PATCH DELETE.
@@ -66,7 +66,7 @@ class BodyParserListener implements EventSubscriberInterface
         if ($options['json']) {
             $this->addParser(
                 ['application/json', 'text/json'],
-                Closure::fromCallable([$this, 'decodeJson'])
+                [$this, 'decodeJson']
             );
         }
         if ($options['methods']) {
@@ -113,11 +113,11 @@ class BodyParserListener implements EventSubscriberInterface
      * ```
      *
      * @param string[] $types An array of content-type header values to match. e.g., application/json
-     * @param Closure $parser The parser function. Must return an array of data to be inserted
+     * @param Closure|callable $parser The parser function. Must return an array of data to be inserted
      *   into the request.
      * @return $this
      */
-    public function addParser(array $types, Closure $parser): static
+    public function addParser(array $types, Closure|callable $parser): static
     {
         foreach ($types as $type) {
             $type = strtolower($type);

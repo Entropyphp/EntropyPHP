@@ -66,7 +66,7 @@ class BodyParserMiddleware implements MiddlewareInterface
         if ($options['json']) {
             $this->addParser(
                 ['application/json', 'text/json'],
-                Closure::fromCallable([$this, 'decodeJson'])
+                [$this, 'decodeJson']
             );
         }
         if ($options['methods']) {
@@ -113,11 +113,11 @@ class BodyParserMiddleware implements MiddlewareInterface
      * ```
      *
      * @param string[] $types An array of content-type header values to match. eg. application/json
-     * @param Closure $parser The parser function. Must return an array of data to be inserted
+     * @param Closure|callable $parser The parser function. Must return an array of data to be inserted
      *   into the request.
      * @return $this
      */
-    public function addParser(array $types, Closure $parser): static
+    public function addParser(array $types, Closure|callable $parser): static
     {
         foreach ($types as $type) {
             $type = strtolower($type);
