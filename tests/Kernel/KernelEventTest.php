@@ -207,6 +207,58 @@ class KernelEventTest extends TestCase
     /**
      * @throws \PHPUnit\Framework\MockObject\Exception
      */
+    public function testHandleExceptionWillThrowException(): void
+    {
+        $request = $this->createMock(ServerRequestInterface::class);
+        $exception = new Exception('Test exception');
+        $response = $this->createMock(ResponseInterface::class);
+
+        // Set up the request in the kernel
+        $this->kernel->setRequest($request);
+
+        // Mock ExceptionEvent
+        $exceptionEvent = $this->createMock(ExceptionEvent::class);
+        $exceptionEvent->expects($this->once())
+            ->method('hasResponse')
+            ->willReturn(true);
+        $exceptionEvent->expects($this->once())
+            ->method('getResponse')
+            ->willReturn($response);
+        $exceptionEvent->expects($this->once())
+            ->method('getException')
+            ->willReturn($exception);
+
+        // Mock ResponseEvent
+        $responseEvent = $this->createMock(ResponseEvent::class);
+
+        // Set up dispatcher expectations
+        $expectations = [$exceptionEvent, $responseEvent];
+        $invokedCount = $this->exactly(count($expectations));
+        $this->dispatcher->expects($invokedCount)
+            ->method('dispatch')
+            ->willReturnCallback(function ($parameter) use ($invokedCount, $expectations, $exception) {
+                $expectationsClass = [
+                    ExceptionEvent::class,
+                    ResponseEvent::class,
+                ];
+                $currentInvocationCount = $invokedCount->numberOfInvocations();
+                $currentExpectation = $expectations[$currentInvocationCount - 1];
+                $currentExpectationClass = $expectationsClass[$currentInvocationCount - 1];
+                $this->assertInstanceOf($currentExpectationClass, $parameter);
+                if ($currentExpectationClass === ResponseEvent::class) {
+                    throw $exception;
+                }
+                return $currentExpectation;
+            });
+
+        $result = $this->kernel->handleException($exception, $request);
+
+        $this->assertSame($response, $result);
+    }
+
+    /**
+     * @throws \PHPUnit\Framework\MockObject\Exception
+     */
     public function testHandleExceptionWithoutResponse(): void
     {
         $request = $this->createMock(ServerRequestInterface::class);
