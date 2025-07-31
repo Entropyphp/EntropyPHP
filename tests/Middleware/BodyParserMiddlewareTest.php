@@ -17,6 +17,7 @@ class BodyParserMiddlewareTest extends TestCase
     private ServerRequestInterface|MockObject $request;
     private RequestHandlerInterface|MockObject $handler;
     private StreamInterface|MockObject $stream;
+    private ResponseInterface|MockObject $response;
     private MiddlewareInterface $middleware;
 
     public function testProcessWithJsonContentType(): void
