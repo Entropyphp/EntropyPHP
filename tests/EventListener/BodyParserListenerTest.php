@@ -25,14 +25,17 @@ class BodyParserListenerTest extends TestCase
         $expected = ['name' => 'John', 'age' => 30];
 
         // Set up request with JSON content type
-        $this->request->method('getHeaderLine')
+        $this->request->expects($this->once())
+            ->method('getHeaderLine')
             ->with('Content-Type')
             ->willReturn('application/json');
 
-        $this->request->method('getMethod')
+        $this->request->expects($this->once())
+            ->method('getMethod')
             ->willReturn('POST');
 
-        $this->stream->method('getContents')
+        $this->stream->expects($this->once())
+            ->method('getContents')
             ->willReturn($jsonData);
 
         // Expect the request to be updated with a parsed body
@@ -52,7 +55,8 @@ class BodyParserListenerTest extends TestCase
     public function testInvokeWithUnsupportedMethod(): void
     {
         // Set up request with unsupported method
-        $this->request->method('getMethod')
+        $this->request->expects($this->once())
+            ->method('getMethod')
             ->willReturn('GET');
 
         // Should not process the body for GET requests
@@ -66,10 +70,12 @@ class BodyParserListenerTest extends TestCase
     public function testInvokeWithUnsupportedContentType(): void
     {
         // Set up request with unsupported content type
-        $this->request->method('getMethod')
+        $this->request->expects($this->once())
+            ->method('getMethod')
             ->willReturn('POST');
 
-        $this->request->method('getHeaderLine')
+        $this->request->expects($this->once())
+            ->method('getHeaderLine')
             ->with('Content-Type')
             ->willReturn('application/xml');
 
@@ -87,14 +93,17 @@ class BodyParserListenerTest extends TestCase
         $expected = [['name' => 'John', 'age' => '30']];
 
         // Set up request with custom content type
-        $this->request->method('getMethod')
+        $this->request->expects($this->once())
+            ->method('getMethod')
             ->willReturn('POST');
 
-        $this->request->method('getHeaderLine')
+        $this->request->expects($this->once())
+            ->method('getHeaderLine')
             ->with('Content-Type')
             ->willReturn('text/csv');
 
-        $this->stream->method('getContents')
+        $this->stream->expects($this->once())
+            ->method('getContents')
             ->willReturn($csvData);
 
         // Create a custom CSV parser
@@ -128,14 +137,17 @@ class BodyParserListenerTest extends TestCase
     public function testInvokeWithEmptyBody(): void
     {
         // Set up request with empty body
-        $this->request->method('getMethod')
+        $this->request->expects($this->once())
+            ->method('getMethod')
             ->willReturn('POST');
 
-        $this->request->method('getHeaderLine')
+        $this->request->expects($this->once())
+            ->method('getHeaderLine')
             ->with('Content-Type')
             ->willReturn('application/json');
 
-        $this->stream->method('getContents')
+        $this->stream->expects($this->once())
+            ->method('getContents')
             ->willReturn('');
 
         // Should parse empty JSON as an empty array
@@ -198,11 +210,13 @@ class BodyParserListenerTest extends TestCase
         $this->stream = $this->createMock(StreamInterface::class);
 
         // Default setup for event to return request
-        $this->event->method('getRequest')
+        $this->event->expects($this->any())
+            ->method('getRequest')
             ->willReturn($this->request);
 
         // Default setup for request to return stream
-        $this->request->method('getBody')
+        $this->request->expects($this->any())
+            ->method('getBody')
             ->willReturn($this->stream);
     }
 }
