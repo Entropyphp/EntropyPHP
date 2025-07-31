@@ -7,7 +7,6 @@ use ReflectionFunctionAbstract;
 
 class AssociativeArrayTypeHintResolver implements ParameterResolver
 {
-
     /**
      * @inheritDoc
      */
