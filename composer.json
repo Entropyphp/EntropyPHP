@@ -15,6 +15,7 @@
     },
     "require": {
         "php": ">=8.2",
+	  	"entropyphp/module": "v1.0",
         "entropyphp/eventdispacher": "^1.0",
         "php-di/php-di": "^7.0",
         "php-di/invoker": "^2.2",
