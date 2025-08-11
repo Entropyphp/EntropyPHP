@@ -206,7 +206,7 @@ class AbstractApplicationTest extends TestCase
      * @throws ContainerExceptionInterface
      * @throws Exception
      */
-    public function testGetContainer(): void
+    public function testGetContainerTestEnv(): void
     {
         // Setup test environment
         $_ENV['APP_ENV'] = 'test';
@@ -237,6 +237,42 @@ class AbstractApplicationTest extends TestCase
 
         // Cleanup
         unset($_ENV['APP_ENV']);
+    }
+
+    /**
+     * @throws NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws Exception
+     */
+    public function testGetContainerEnvProd()
+    {
+        // Setup test environment
+        $_ENV['APP_ENV'] = 'prod';
+
+        // Test
+        $container = $this->app->getContainer();
+        $this->assertSame($this->app, $container->get(ApplicationInterface::class));
+        $this->assertIsString($container->get('app.project.dir'));
+        $this->assertIsString($container->get('app.cache.dir'));
+
+        $this->removeDirectory($this->app->getProjectDir() . AbstractApplication::COMPILED_CONTAINER_DIRECTORY);
+        $this->removeDirectory($this->app->getProjectDir() . AbstractApplication::PROXY_DIRECTORY);
+        $this->removeDirectory($this->app->getProjectDir() . '/tmp');
+    }
+
+    private function removeDirectory(string $dir): void
+    {
+        if (!is_dir($dir)) {
+            return;
+        }
+
+        $files = array_diff(scandir($dir), ['.', '..']);
+        foreach ($files as $file) {
+            $path = "$dir/$file";
+            is_dir($path) ? $this->removeDirectory($path) : unlink($path);
+        }
+
+        rmdir($dir);
     }
 
     public function testGetConfigDir(): void
@@ -315,20 +351,5 @@ class AbstractApplicationTest extends TestCase
 
         // Clean up environment variables
         unset($_ENV['APP_ENV']);
-    }
-
-    private function removeDirectory(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        $files = array_diff(scandir($dir), ['.', '..']);
-        foreach ($files as $file) {
-            $path = "$dir/$file";
-            is_dir($path) ? $this->removeDirectory($path) : unlink($path);
-        }
-
-        rmdir($dir);
     }
 }
