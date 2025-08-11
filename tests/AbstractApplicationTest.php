@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Entropy\Tests;
 
+use Entropy\Kernel\KernelEvent;
+use Entropy\Kernel\KernelMiddleware;
 use Exception;
 use PHPUnit\Framework\TestCase;
 use Entropy\ApplicationInterface;
@@ -12,6 +14,7 @@ use Entropy\Kernel\KernelInterface;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -254,10 +257,16 @@ class AbstractApplicationTest extends TestCase
         $this->assertSame($this->app, $container->get(ApplicationInterface::class));
         $this->assertIsString($container->get('app.project.dir'));
         $this->assertIsString($container->get('app.cache.dir'));
+        $this->assertInstanceof(KernelEvent::class, $container->get(KernelEvent::class));
+        $this->assertInstanceof(KernelMiddleware::class, $container->get(KernelMiddleware::class));
+        $this->assertInstanceof(EventDispatcherInterface::class, $container->get(EventDispatcherInterface::class));
 
         $this->removeDirectory($this->app->getProjectDir() . AbstractApplication::COMPILED_CONTAINER_DIRECTORY);
         $this->removeDirectory($this->app->getProjectDir() . AbstractApplication::PROXY_DIRECTORY);
         $this->removeDirectory($this->app->getProjectDir() . '/tmp');
+
+        // Restore environment
+        $_ENV['APP_ENV'] = 'test';
     }
 
     private function removeDirectory(string $dir): void
