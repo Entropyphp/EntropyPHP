@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Entropy\Event\EventDispatcher;
 use Entropy\Invoker\CallableResolverFactory;
 use Entropy\Invoker\InvokerFactory;
@@ -15,6 +17,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use function DI\factory;
 
 return [
+    //@codeCoverageIgnoreStart
     Invoker::class => factory(InvokerFactory::class),
     ParameterResolver::class => factory(ResolverChainFactory::class),
     CallableResolver::class => factory(CallableResolverFactory::class),
@@ -31,5 +34,6 @@ return [
     },
     KernelMiddleware::class => function (ContainerInterface $c): KernelMiddleware {
         return new KernelMiddleware($c);
-    }
+    },
+    //@codeCoverageIgnoreEnd
 ];
