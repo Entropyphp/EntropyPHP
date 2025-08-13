@@ -14,7 +14,7 @@
         }
     },
     "require": {
-        "php": ">=8.2",
+        "php": "^8.2 || ^8.3 || ^8.4",
 	  	"entropyphp/module": "v1.0",
         "entropyphp/eventdispacher": "^1.0",
         "php-di/php-di": "^7.0",
