@@ -6,6 +6,7 @@ namespace Entropy\Tests;
 
 use Entropy\Kernel\KernelEvent;
 use Entropy\Kernel\KernelMiddleware;
+use Entropy\KernelModule;
 use Entropy\Module;
 use Exception;
 use PHPUnit\Framework\TestCase;
@@ -259,12 +260,16 @@ class AbstractApplicationTest extends TestCase
         };
 
         $this->app->addModule($module::class);
+        $this->app->addModule(KernelModule::class);
 
         // Test
         $container = $this->app->getContainer();
         $this->assertSame($this->app, $container->get(ApplicationInterface::class));
         $this->assertIsString($container->get('app.project.dir'));
         $this->assertIsString($container->get('app.cache.dir'));
+        $this->assertInstanceof(KernelEvent::class, $container->get(KernelEvent::class));
+        $this->assertInstanceof(KernelMiddleware::class, $container->get(KernelMiddleware::class));
+        $this->assertInstanceof(EventDispatcherInterface::class, $container->get(EventDispatcherInterface::class));
         $this->assertSame($module::class, $container->get('module.test'));
 
         $this->removeDirectory($this->app->getProjectDir() . AbstractApplication::COMPILED_CONTAINER_DIRECTORY);
