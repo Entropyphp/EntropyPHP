@@ -18,22 +18,5 @@ use function DI\factory;
 
 return [
     //@codeCoverageIgnoreStart
-    Invoker::class => factory(InvokerFactory::class),
-    ParameterResolver::class => factory(ResolverChainFactory::class),
-    CallableResolver::class => factory(CallableResolverFactory::class),
-    EventDispatcherInterface::class => function (ContainerInterface $c): EventDispatcherInterface {
-        return new EventDispatcher($c->get(CallableResolver::class));
-    },
-    KernelEvent::class => function (ContainerInterface $c): KernelEvent {
-        return new KernelEvent(
-            $c->get(EventDispatcherInterface::class),
-            $c->get(CallableResolver::class),
-            $c->get(ParameterResolver::class),
-            $c
-        );
-    },
-    KernelMiddleware::class => function (ContainerInterface $c): KernelMiddleware {
-        return new KernelMiddleware($c);
-    },
     //@codeCoverageIgnoreEnd
 ];
