@@ -19,6 +19,7 @@
 	  	"entropyphp/module": "^1.0",
 	  	"entropyphp/event": "^0.1",
         "entropyphp/eventdispacher": "^1.0",
+	  	"entropyphp/kernel": "^0.1",
         "php-di/php-di": "^7.0",
         "php-di/invoker": "^2.2",
         "psr/container": "^1.0 || ^2.0",
